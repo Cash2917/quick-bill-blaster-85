@@ -123,12 +123,7 @@ export const validateInput = {
     if (password.length < SecurityConfig.VALIDATION.MIN_PASSWORD_LENGTH) {
       return { valid: false, message: `Password must be at least ${SecurityConfig.VALIDATION.MIN_PASSWORD_LENGTH} characters` };
     }
-    if (!/[A-Z]/.test(password)) {
-      return { valid: false, message: 'Password must contain at least one uppercase letter' };
-    }
-    if (!/[0-9]/.test(password)) {
-      return { valid: false, message: 'Password must contain at least one number' };
-    }
+    // Simplified validation for better UX
     return { valid: true };
   },
   

@@ -15,18 +15,22 @@ interface AuthModalProps {
 }
 
 export const AuthModal = ({ isOpen, onClose, defaultTab = 'signin' }: AuthModalProps) => {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
     const { error } = await signIn(email, password);
     
-    if (!error) {
+    if (error) {
+      setError(error.message);
+    } else {
       onClose();
       setEmail('');
       setPassword('');
@@ -38,10 +42,13 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
     const { error } = await signUp(email, password);
     
-    if (!error) {
+    if (error) {
+      setError(error.message);
+    } else {
       onClose();
       setEmail('');
       setPassword('');
@@ -64,6 +71,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
           </TabsList>
           
           <TabsContent value="signin" className="space-y-4">
+            {error && <div className="text-red-600 text-sm">{error}</div>}
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="signin-email">Email</Label>
@@ -97,6 +105,7 @@ export const AuthModal = ({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
           </TabsContent>
           
           <TabsContent value="signup" className="space-y-4">
+            {error && <div className="text-red-600 text-sm">{error}</div>}
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="signup-email">Email</Label>
