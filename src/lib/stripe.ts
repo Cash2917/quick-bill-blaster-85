@@ -1,14 +1,16 @@
 import { loadStripe } from '@stripe/stripe-js';
+import { getStripeConfig } from '@/config/production';
 
-// Initialize Stripe
-const stripePromise = loadStripe('pk_test_51RSllgRD1hxs4eDXZ25BsePqQM7uHr4wzBjjkYwr9cp1SujpxPdMeKEyHNtRJCaEzOrkP2aD3wBQdedmeXFsxQTX00MVR18NHr');
+// Initialize Stripe with environment-specific configuration
+const stripeConfig = getStripeConfig();
+const stripePromise = loadStripe(stripeConfig.publishableKey);
 
 export { stripePromise };
 
-// Stripe price IDs - replace these with your actual Stripe price IDs
+// Environment-specific Stripe price IDs
 export const STRIPE_PRICES = {
-  pro: 'price_1234567890abcdef', // Replace with your actual Pro plan price ID
-  business: 'price_0987654321fedcba', // Replace with your actual Business plan price ID
+  pro: stripeConfig.priceIds.pro,
+  business: stripeConfig.priceIds.business,
 };
 
 export const PLANS = {

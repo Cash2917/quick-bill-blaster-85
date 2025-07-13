@@ -13,7 +13,20 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce'
+    flowType: 'pkce',
+    storage: localStorage,
+    storageKey: 'honest-invoice-auth',
+    debug: false
+  },
+  global: {
+    headers: {
+      'x-application-name': 'HonestInvoice'
+    }
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
   }
 });
 
