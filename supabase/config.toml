@@ -1,0 +1,27 @@
+
+project_id = "jdwawncmybyjthqovftk"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54324
+site_url = "https://quick-bill-blaster.lovable.app"
+additional_redirect_urls = ["https://quick-bill-blaster.lovable.app", "http://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+enable_confirmations = false
+
+[functions.create-checkout-session]
+verify_jwt = true
+
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
