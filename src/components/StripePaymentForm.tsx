@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, CreditCard } from 'lucide-react';
-import { stripePromise } from '@/lib/stripe';
+import { Loader2, CreditCard, Lock } from 'lucide-react';
+import { stripePromise, isStripeConfigured } from '@/lib/stripe';
 
 interface PaymentFormProps {
   priceId: string;
@@ -14,6 +14,21 @@ interface PaymentFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
 }
+
+const cardElementOptions = {
+  style: {
+    base: {
+      fontSize: '16px',
+      color: '#424770',
+      '::placeholder': {
+        color: '#aab7c4',
+      },
+    },
+    invalid: {
+      color: '#9e2146',
+    },
+  },
+};
 
 const PaymentForm = ({ priceId, planName, amount, onSuccess, onCancel }: PaymentFormProps) => {
   const stripe = useStripe();
@@ -51,6 +66,10 @@ const PaymentForm = ({ priceId, planName, amount, onSuccess, onCancel }: Payment
         })
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.error) {
@@ -60,18 +79,37 @@ const PaymentForm = ({ priceId, planName, amount, onSuccess, onCancel }: Payment
       if (data.url) {
         // Redirect to Stripe Checkout
         window.location.href = data.url;
+        onSuccess?.();
+      } else {
+        throw new Error('No checkout URL received');
       }
     } catch (error: any) {
       console.error('Payment error:', error);
       toast({
         title: "Payment Error",
-        description: error.message || "Failed to process payment",
+        description: error.message || "Failed to process payment. Please try again.",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
+
+  if (!isStripeConfigured()) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardContent className="p-6 text-center">
+          <div className="text-red-600 mb-4">
+            <CreditCard className="w-12 h-12 mx-auto mb-2" />
+            <h3 className="font-semibold">Payment System Unavailable</h3>
+            <p className="text-sm text-gray-600 mt-2">
+              Stripe is not configured. Please contact support.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -90,11 +128,15 @@ const PaymentForm = ({ priceId, planName, amount, onSuccess, onCancel }: Payment
             </div>
           </div>
 
+          <div className="p-4 border rounded-lg">
+            <CardElement options={cardElementOptions} />
+          </div>
+
           <div className="space-y-2">
             <Button
               type="submit"
               disabled={!stripe || loading}
-              className="w-full"
+              className="w-full bg-green-600 hover:bg-green-700"
             >
               {loading ? (
                 <>
@@ -102,7 +144,10 @@ const PaymentForm = ({ priceId, planName, amount, onSuccess, onCancel }: Payment
                   Processing...
                 </>
               ) : (
-                `Subscribe for $${amount}/month`
+                <>
+                  <Lock className="w-4 h-4 mr-2" />
+                  Subscribe for ${amount}/month
+                </>
               )}
             </Button>
             
@@ -118,9 +163,13 @@ const PaymentForm = ({ priceId, planName, amount, onSuccess, onCancel }: Payment
             )}
           </div>
 
-          <p className="text-xs text-gray-500 text-center">
-            Secure payment processed by Stripe
-          </p>
+          <div className="text-xs text-gray-500 text-center space-y-1">
+            <p className="flex items-center justify-center gap-1">
+              <Lock className="w-3 h-3" />
+              Secure payment processed by Stripe
+            </p>
+            <p>Your card information is encrypted and secure</p>
+          </div>
         </form>
       </CardContent>
     </Card>
@@ -130,6 +179,10 @@ const PaymentForm = ({ priceId, planName, amount, onSuccess, onCancel }: Payment
 interface StripePaymentFormProps extends PaymentFormProps {}
 
 const StripePaymentForm = (props: StripePaymentFormProps) => {
+  if (!isStripeConfigured()) {
+    return <PaymentForm {...props} />;
+  }
+
   return (
     <Elements stripe={stripePromise}>
       <PaymentForm {...props} />

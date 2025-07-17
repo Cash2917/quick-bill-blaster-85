@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { PLANS, type PlanType } from '@/lib/stripe';
+import { PLANS, type PlanType, isStripeConfigured } from '@/lib/stripe';
 
 interface Subscription {
   subscribed: boolean;
@@ -97,6 +97,15 @@ export const useSubscription = () => {
       toast({
         title: "Authentication Required",
         description: "Please sign in to subscribe to a plan.",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    if (!isStripeConfigured()) {
+      toast({
+        title: "Payment System Unavailable",
+        description: "Stripe is not configured. Please contact support.",
         variant: "destructive"
       });
       return null;

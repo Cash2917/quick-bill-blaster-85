@@ -4,7 +4,7 @@ import { loadStripe } from '@stripe/stripe-js';
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 if (!stripePublishableKey) {
-  console.warn('VITE_STRIPE_PUBLISHABLE_KEY is not set');
+  console.warn('VITE_STRIPE_PUBLISHABLE_KEY is not set - Stripe features will be disabled');
 }
 
 // Initialize Stripe
@@ -12,10 +12,10 @@ const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : 
 
 export { stripePromise };
 
-// Test price IDs - replace with your actual Stripe price IDs
+// Stripe price IDs - replace with your actual Stripe price IDs from your dashboard
 export const STRIPE_PRICES = {
-  pro: 'price_1234567890abcdef', // Replace with your actual Pro plan price ID
-  business: 'price_0987654321fedcba', // Replace with your actual Business plan price ID
+  pro: import.meta.env.VITE_STRIPE_PRO_PRICE_ID || 'price_1234567890abcdef',
+  business: import.meta.env.VITE_STRIPE_BUSINESS_PRICE_ID || 'price_0987654321fedcba',
 };
 
 export const PLANS = {
@@ -71,3 +71,16 @@ export const PLANS = {
 } as const;
 
 export type PlanType = keyof typeof PLANS;
+
+// Stripe configuration validation
+export const isStripeConfigured = (): boolean => {
+  return !!stripePublishableKey;
+};
+
+// Get Stripe instance
+export const getStripe = async () => {
+  if (!stripePromise) {
+    throw new Error('Stripe is not configured. Please set VITE_STRIPE_PUBLISHABLE_KEY.');
+  }
+  return await stripePromise;
+};

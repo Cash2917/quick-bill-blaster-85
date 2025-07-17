@@ -6,7 +6,7 @@ import { Check, Crown, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
-import { PLANS, STRIPE_PRICES } from '@/lib/stripe';
+import { PLANS, STRIPE_PRICES, isStripeConfigured } from '@/lib/stripe';
 import StripePaymentForm from './StripePaymentForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -45,6 +45,15 @@ const PricingSection = ({ onNavigate, onShowAuth }: PricingSectionProps) => {
       return;
     }
 
+    if (!isStripeConfigured()) {
+      toast({
+        title: "Payment System Unavailable",
+        description: "Stripe is not configured. Please contact support.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Show payment modal for paid plans
     if (planKey !== 'free') {
       setSelectedPlan(planKey);
@@ -52,19 +61,6 @@ const PricingSection = ({ onNavigate, onShowAuth }: PricingSectionProps) => {
       return;
     }
 
-    if (!plan.priceId) {
-      toast({
-        title: "Error",
-        description: "This plan is not available for subscription.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const checkoutUrl = await createCheckoutSession(plan.priceId);
-    if (checkoutUrl) {
-      window.open(checkoutUrl, '_blank');
-    }
   };
 
   const handlePaymentSuccess = () => {
@@ -151,13 +147,15 @@ const PricingSection = ({ onNavigate, onShowAuth }: PricingSectionProps) => {
                           ? 'bg-blue-500 hover:bg-blue-600' 
                           : 'bg-green-600 hover:bg-green-700'
                     } text-white`}
-                    disabled={isCurrentPlan}
+                    disabled={isCurrentPlan || (planKey !== 'free' && !isStripeConfigured())}
                   >
                     {isCurrentPlan 
                       ? 'Current Plan' 
                       : planKey === 'free' 
                         ? 'Get Started' 
-                        : `Subscribe to ${plan.name}`
+                        : isStripeConfigured() 
+                          ? `Subscribe to ${plan.name}`
+                          : 'Payment Unavailable'
                     }
                   </Button>
                 </CardContent>
