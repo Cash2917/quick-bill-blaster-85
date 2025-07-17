@@ -52,12 +52,16 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  console.log('create-checkout-session: Function called');
+
   // Only allow POST requests
   if (req.method !== 'POST') {
+    console.log('create-checkout-session: Method not allowed:', req.method);
     return new Response('Method not allowed', { status: 405, headers: corsHeaders });
   }
 
   try {
+    console.log('create-checkout-session: Initializing Supabase client');
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -81,6 +85,7 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
 
+    console.log('create-checkout-session: User authenticated:', !!user, userError?.message);
     if (userError || !user) {
       console.error('Authentication error:', userError);
       return new Response(
@@ -100,6 +105,7 @@ serve(async (req) => {
     // Parse and validate request body
     let requestBody;
     try {
+      console.log('create-checkout-session: Parsing request body');
       requestBody = await req.json();
     } catch {
       return new Response(
@@ -109,6 +115,7 @@ serve(async (req) => {
     }
 
     const { priceId, successUrl, cancelUrl } = requestBody;
+    console.log('create-checkout-session: Request data:', { priceId, successUrl, cancelUrl });
 
     // Input validation
     if (!validateInput.priceId(priceId)) {
@@ -127,6 +134,7 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
+      console.error('create-checkout-session: STRIPE_SECRET_KEY not configured');
       console.error('STRIPE_SECRET_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'Payment system not configured' }),
@@ -134,6 +142,8 @@ serve(async (req) => {
       );
     }
 
+    console.log('create-checkout-session: Initializing Stripe with key:', stripeKey.substring(0, 7) + '...');
+    
     const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
       httpClient: Stripe.createFetchHttpClient(),
@@ -141,6 +151,7 @@ serve(async (req) => {
 
     // Get or create customer
     let customer
+    console.log('create-checkout-session: Looking up customer for user:', user.id);
     const { data: subscriber } = await supabaseClient
       .from('subscribers')
       .select('stripe_customer_id')
@@ -148,8 +159,10 @@ serve(async (req) => {
       .single()
 
     if (subscriber?.stripe_customer_id) {
+      console.log('create-checkout-session: Found existing customer:', subscriber.stripe_customer_id);
       customer = await stripe.customers.retrieve(subscriber.stripe_customer_id)
     } else {
+      console.log('create-checkout-session: Creating new customer for:', user.email);
       customer = await stripe.customers.create({
         email: user.email,
         metadata: {
@@ -167,6 +180,8 @@ serve(async (req) => {
         })
     }
 
+    console.log('create-checkout-session: Creating checkout session for customer:', customer.id);
+    
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       line_items: [
@@ -193,6 +208,8 @@ serve(async (req) => {
       }
     });
 
+    console.log('create-checkout-session: Session created successfully:', session.id);
+    
     return new Response(
       JSON.stringify({ url: session.url }),
       {
@@ -201,6 +218,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('create-checkout-session: Error occurred:', error);
     console.error('Error creating checkout session:', error);
     
     // Don't expose internal errors to client

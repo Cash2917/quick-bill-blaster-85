@@ -14,6 +14,8 @@ const SubscriptionPlans = () => {
   const handleSubscribe = async (planKey: string) => {
     const plan = PLANS[planKey as keyof typeof PLANS];
     
+    console.log('Subscribing to plan:', planKey, 'with priceId:', plan.priceId);
+    
     if (planKey === 'free') {
       toast({
         title: "You're already on the free plan!",
@@ -26,6 +28,15 @@ const SubscriptionPlans = () => {
       toast({
         title: "Error",
         description: "This plan is not available for subscription.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!plan.priceId) {
+      toast({
+        title: "Configuration Error",
+        description: "This plan is not properly configured. Please contact support.",
         variant: "destructive"
       });
       return;

@@ -25,6 +25,8 @@ const PricingSection = ({ onNavigate, onShowAuth }: PricingSectionProps) => {
   const handleSubscribe = async (planKey: string) => {
     const plan = PLANS[planKey as keyof typeof PLANS];
     
+    console.log('PricingSection: Subscribing to plan:', planKey, 'priceId:', plan.priceId);
+    
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -49,6 +51,15 @@ const PricingSection = ({ onNavigate, onShowAuth }: PricingSectionProps) => {
       toast({
         title: "Payment System Unavailable",
         description: "Stripe is not configured. Please contact support.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!plan.priceId) {
+      toast({
+        title: "Configuration Error",
+        description: "This plan is not properly configured. Please contact support.",
         variant: "destructive"
       });
       return;

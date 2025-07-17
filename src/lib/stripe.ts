@@ -1,11 +1,9 @@
 import { loadStripe } from '@stripe/stripe-js';
 
 // Get Stripe publishable key from environment
-const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '';
 
-if (!stripePublishableKey) {
-  console.warn('VITE_STRIPE_PUBLISHABLE_KEY is not set - Stripe features will be disabled');
-}
+console.log('Stripe publishable key configured:', !!stripePublishableKey);
 
 // Initialize Stripe
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
@@ -14,8 +12,8 @@ export { stripePromise };
 
 // Stripe price IDs - replace with your actual Stripe price IDs from your dashboard
 export const STRIPE_PRICES = {
-  pro: import.meta.env.VITE_STRIPE_PRO_PRICE_ID || 'price_1234567890abcdef',
-  business: import.meta.env.VITE_STRIPE_BUSINESS_PRICE_ID || 'price_0987654321fedcba',
+  pro: import.meta.env.VITE_STRIPE_PRO_PRICE_ID || '',
+  business: import.meta.env.VITE_STRIPE_BUSINESS_PRICE_ID || '',
 };
 
 export const PLANS = {

@@ -93,6 +93,8 @@ export const useSubscription = () => {
   };
 
   const createCheckoutSession = async (priceId: string) => {
+    console.log('Creating checkout session with priceId:', priceId);
+    
     if (!session?.access_token) {
       toast({
         title: "Authentication Required",
@@ -112,6 +114,8 @@ export const useSubscription = () => {
     }
 
     try {
+      console.log('Calling create-checkout-session function...');
+      
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: {
           priceId,
@@ -123,6 +127,8 @@ export const useSubscription = () => {
         }
       });
 
+      console.log('Checkout session response:', { data, error });
+      
       if (error) throw error;
       return data?.url;
     } catch (error) {
