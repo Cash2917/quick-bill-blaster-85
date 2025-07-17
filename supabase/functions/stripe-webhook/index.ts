@@ -74,8 +74,11 @@ async function handleSubscriptionChange(subscription: any) {
   let tier = 'free'
   
   // Map your actual Stripe price IDs to tiers
-  if (priceId === 'price_1234567890abcdef') tier = 'pro'
-  if (priceId === 'price_0987654321fedcba') tier = 'business'
+  const proPriceId = Deno.env.get('VITE_STRIPE_PRO_PRICE_ID') || 'price_1234567890abcdef';
+  const businessPriceId = Deno.env.get('VITE_STRIPE_BUSINESS_PRICE_ID') || 'price_0987654321fedcba';
+  
+  if (priceId === proPriceId) tier = 'pro'
+  if (priceId === businessPriceId) tier = 'business'
 
   // Update subscriber record
   const { error } = await supabaseClient

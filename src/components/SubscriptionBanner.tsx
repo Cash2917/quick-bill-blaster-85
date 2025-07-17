@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Crown, AlertCircle, Zap } from 'lucide-react';
 import { useSubscription } from '@/hooks/useSubscription';
+import { isStripeConfigured } from '@/lib/stripe';
 
 interface SubscriptionBannerProps {
   onNavigate: (page: string) => void;
@@ -20,6 +21,10 @@ const SubscriptionBanner = ({ onNavigate }: SubscriptionBannerProps) => {
   }
 
   const handleUpgrade = async () => {
+    if (!isStripeConfigured()) {
+      return;
+    }
+    
     if (tier === 'free') {
       // Upgrade to Pro
       const checkoutUrl = await createCheckoutSession('price_1234567890abcdef');
@@ -34,6 +39,10 @@ const SubscriptionBanner = ({ onNavigate }: SubscriptionBannerProps) => {
       }
     }
   };
+
+  if (!isStripeConfigured()) {
+    return null; // Don't show banner if Stripe is not configured
+  }
 
   return (
     <Card className="mb-6 border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50">
