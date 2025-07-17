@@ -1,16 +1,21 @@
 import { loadStripe } from '@stripe/stripe-js';
-import { getStripeConfig } from '@/config/production';
 
-// Initialize Stripe with environment-specific configuration
-const stripeConfig = getStripeConfig();
-const stripePromise = loadStripe(stripeConfig.publishableKey);
+// Get Stripe publishable key from environment
+const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+
+if (!stripePublishableKey) {
+  console.warn('VITE_STRIPE_PUBLISHABLE_KEY is not set');
+}
+
+// Initialize Stripe
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 export { stripePromise };
 
-// Environment-specific Stripe price IDs
+// Test price IDs - replace with your actual Stripe price IDs
 export const STRIPE_PRICES = {
-  pro: stripeConfig.priceIds.pro,
-  business: stripeConfig.priceIds.business,
+  pro: 'price_1234567890abcdef', // Replace with your actual Pro plan price ID
+  business: 'price_0987654321fedcba', // Replace with your actual Business plan price ID
 };
 
 export const PLANS = {

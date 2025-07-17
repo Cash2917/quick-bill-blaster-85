@@ -6,7 +6,9 @@ import { Check, Crown, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
-import { PLANS } from '@/lib/stripe';
+import { PLANS, STRIPE_PRICES } from '@/lib/stripe';
+import StripePaymentForm from './StripePaymentForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface PricingSectionProps {
   onNavigate?: (page: string) => void;
@@ -16,6 +18,8 @@ interface PricingSectionProps {
 const PricingSection = ({ onNavigate, onShowAuth }: PricingSectionProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [showPaymentModal, setShowPaymentModal] = React.useState(false);
+  const [selectedPlan, setSelectedPlan] = React.useState<string | null>(null);
   const { createCheckoutSession, getTier } = useSubscription();
 
   const handleSubscribe = async (planKey: string) => {
@@ -41,6 +45,13 @@ const PricingSection = ({ onNavigate, onShowAuth }: PricingSectionProps) => {
       return;
     }
 
+    // Show payment modal for paid plans
+    if (planKey !== 'free') {
+      setSelectedPlan(planKey);
+      setShowPaymentModal(true);
+      return;
+    }
+
     if (!plan.priceId) {
       toast({
         title: "Error",
@@ -54,6 +65,11 @@ const PricingSection = ({ onNavigate, onShowAuth }: PricingSectionProps) => {
     if (checkoutUrl) {
       window.open(checkoutUrl, '_blank');
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
+    setSelectedPlan(null);
   };
 
   const currentTier = user ? getTier() : 'free';
@@ -165,6 +181,24 @@ const PricingSection = ({ onNavigate, onShowAuth }: PricingSectionProps) => {
           </div>
         )}
       </div>
+
+      {/* Payment Modal */}
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Complete Your Subscription</DialogTitle>
+          </DialogHeader>
+          {selectedPlan && (
+            <StripePaymentForm
+              priceId={STRIPE_PRICES[selectedPlan as keyof typeof STRIPE_PRICES]}
+              planName={PLANS[selectedPlan as keyof typeof PLANS].name}
+              amount={PLANS[selectedPlan as keyof typeof PLANS].price}
+              onSuccess={handlePaymentSuccess}
+              onCancel={() => setShowPaymentModal(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
