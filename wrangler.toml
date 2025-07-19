@@ -1,0 +1,64 @@
+name = "honestinvoice-production"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "honestinvoice-production"
+route = { pattern = "honestinvoice.com/*", zone_name = "honestinvoice.com" }
+routes = [
+  { pattern = "honestinvoice.com/*", zone_name = "honestinvoice.com" },
+  { pattern = "www.honestinvoice.com/*", zone_name = "honestinvoice.com" }
+]
+
+# Pages configuration
+pages_build_output_dir = "dist"
+
+# Environment variables for production
+[env.production.vars]
+ENVIRONMENT = "production"
+NODE_ENV = "production"
+VITE_APP_URL = "https://honestinvoice.com"
+VITE_API_URL = "https://honestinvoice.com/api"
+
+# Security headers
+[[env.production.rules]]
+type = "Header"
+src = "/*"
+headers = { "X-Frame-Options" = "DENY", "X-Content-Type-Options" = "nosniff", "Referrer-Policy" = "strict-origin-when-cross-origin" }
+
+# Cache configuration for static assets
+[[env.production.rules]]
+type = "Header"
+src = "/assets/*"
+headers = { "Cache-Control" = "public, max-age=31536000, immutable" }
+
+# SPA routing - redirect all routes to index.html
+[[env.production.redirects]]
+from = "/dashboard"
+to = "/dashboard"
+status = 200
+
+[[env.production.redirects]]
+from = "/dashboard/*"
+to = "/dashboard/*"
+status = 200
+
+[[env.production.redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+# Custom domain configuration
+[env.production.custom_domains]
+honestinvoice.com = true
+www.honestinvoice.com = true
+
+# Build configuration
+[build]
+command = "npm run build"
+cwd = "."
+watch_dir = "src"
+
+[build.environment]
+NODE_VERSION = "18"
+NPM_VERSION = "9"

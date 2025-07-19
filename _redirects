@@ -1,0 +1,13 @@
+# Cloudflare Pages redirects for SPA routing
+# Redirect www to non-www
+https://www.honestinvoice.com/* https://honestinvoice.com/:splat 301!
+
+# Dashboard routing
+/dashboard /index.html 200
+/dashboard/* /index.html 200
+
+# API routes (if you have any backend functions)
+/api/* /api/:splat 200
+
+# Catch-all for SPA routing
+/* /index.html 200
