@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { CustomAuthProvider } from "@/contexts/CustomAuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
@@ -23,7 +23,7 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <AuthProvider>
+          <CustomAuthProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -32,7 +32,7 @@ const App = () => {
                 <Route path="/subscription-success" element={<SubscriptionSuccess />} />
               </Routes>
             </BrowserRouter>
-          </AuthProvider>
+          </CustomAuthProvider>
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>

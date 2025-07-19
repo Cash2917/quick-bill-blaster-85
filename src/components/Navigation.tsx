@@ -9,7 +9,7 @@ import {
   User,
   CreditCard
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 
 interface NavigationProps {
   currentPage: string;
@@ -18,7 +18,7 @@ interface NavigationProps {
 }
 
 const Navigation = ({ currentPage, onNavigate, onShowAuth }: NavigationProps) => {
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useCustomAuth();
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },

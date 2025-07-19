@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { PLANS, type PlanType, isStripeConfigured } from '@/lib/stripe';
 
 interface Subscription {
@@ -15,10 +15,10 @@ export const useSubscription = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { user, session } = useAuth();
+  const { user, session } = useCustomAuth();
 
   useEffect(() => {
-    if (user && session) {
+    if (user) {
       fetchSubscription();
     } else {
       setSubscription({ 
@@ -29,10 +29,10 @@ export const useSubscription = () => {
       });
       setLoading(false);
     }
-  }, [user, session]);
+  }, [user]);
 
   const fetchSubscription = async () => {
-    if (!user || !session?.access_token) {
+    if (!user) {
       setSubscription({ 
         subscribed: false, 
         subscription_tier: 'free', 
@@ -76,14 +76,10 @@ export const useSubscription = () => {
   };
 
   const checkSubscriptionStatus = async () => {
-    if (!session?.access_token) return;
+    if (!user) return;
 
     try {
-      await supabase.functions.invoke('check-subscription', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
+      await supabase.functions.invoke('check-subscription');
       
       // Refetch subscription data after checking
       await fetchSubscription();
@@ -95,7 +91,7 @@ export const useSubscription = () => {
   const createCheckoutSession = async (priceId: string) => {
     console.log('Creating checkout session with priceId:', priceId);
     
-    if (!session?.access_token) {
+    if (!user) {
       toast({
         title: "Authentication Required",
         description: "Please sign in to subscribe to a plan.",
@@ -116,14 +112,13 @@ export const useSubscription = () => {
     try {
       console.log('Calling create-checkout-session function...');
       
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session-custom', {
         body: {
           priceId,
+          userId: user.id,
+          userEmail: user.email,
           successUrl: `${window.location.origin}/subscription-success`,
           cancelUrl: `${window.location.origin}/#pricing`
-        },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
         }
       });
 

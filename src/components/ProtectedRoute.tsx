@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lock, UserPlus } from 'lucide-react';
@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, onShowAuth }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, loading } = useCustomAuth();
 
   if (loading) {
     return (

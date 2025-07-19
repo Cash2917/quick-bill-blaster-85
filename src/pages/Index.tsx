@@ -6,15 +6,15 @@ import InvoiceForm from '@/components/InvoiceForm';
 import ClientForm from '@/components/ClientForm';
 import SubscriptionPlans from '@/components/SubscriptionPlans';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import { AuthModal } from '@/components/AuthModal';
-import { useAuth } from '@/contexts/AuthContext';
+import { CustomAuthModal } from '@/components/CustomAuthModal';
+import { useCustomAuth } from '@/contexts/CustomAuthContext';
 
 const Index = () => {
   console.log('Index component rendering...');
   
   const [currentPage, setCurrentPage] = useState('landing');
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const { user, loading } = useAuth();
+  const { user, loading } = useCustomAuth();
 
   console.log('User state:', user ? 'authenticated' : 'not authenticated');
   console.log('Loading state:', loading);
@@ -95,7 +95,7 @@ const Index = () => {
         {renderPage()}
       </main>
       
-      <AuthModal 
+      <CustomAuthModal 
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
       />

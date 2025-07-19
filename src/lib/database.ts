@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { customAuth } from "./custom-auth";
 
 export type Client = Database['public']['Tables']['clients']['Row'];
 export type ClientInsert = Database['public']['Tables']['clients']['Insert'];
@@ -21,9 +22,13 @@ export interface InvoiceWithClient extends Invoice {
 // Client operations
 export const clientService = {
   async getAll(): Promise<Client[]> {
+    const user = customAuth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('clients')
       .select('*')
+      .eq('user_id', user.id)
       .order('name');
     
     if (error) {
@@ -34,7 +39,7 @@ export const clientService = {
   },
 
   async create(client: Omit<ClientInsert, 'user_id'>): Promise<Client> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = customAuth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     const clientData = {
@@ -92,12 +97,16 @@ export const clientService = {
 // Invoice operations
 export const invoiceService = {
   async getAll(): Promise<InvoiceWithClient[]> {
+    const user = customAuth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('invoices')
       .select(`
         *,
         client:clients(*)
       `)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -128,7 +137,7 @@ export const invoiceService = {
     invoice: Omit<InvoiceInsert, 'user_id'>, 
     items: InvoiceItem[]
   ): Promise<Invoice> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = customAuth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     // Get client information if client_id is provided
@@ -219,9 +228,13 @@ export const invoiceService = {
 // Generate next invoice number
 export async function generateInvoiceNumber(): Promise<string> {
   try {
+    const user = customAuth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('invoices')
       .select('invoice_number')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(1);
     
